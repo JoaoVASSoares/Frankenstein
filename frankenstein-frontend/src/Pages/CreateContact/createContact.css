@@ -1,0 +1,9 @@
+.labelFileInput {
+  display: flex;
+  justify-content: center;
+}
+
+.disabled {
+  border-bottom: 1px solid !important;
+  border-color: rgb(176 190 197 / var(--tw-border-opacity, 1)) !important;
+}
