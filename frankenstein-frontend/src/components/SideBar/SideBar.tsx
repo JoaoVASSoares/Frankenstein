@@ -40,13 +40,15 @@ const SidBar = () => {
           </ListItem>
           <AccordionBody className="py-1">
             <List className="p-0" placeholder="" onPointerEnterCapture="" onPointerLeaveCapture="">
-              <ListItem placeholder="" onPointerEnterCapture="" onPointerLeaveCapture="">
-                <ListItemPrefix placeholder="" onPointerEnterCapture="" onPointerLeaveCapture="">
-                  <ChevronRightIcon strokeWidth={3} className="h-3 w-5" />
-                </ListItemPrefix>
-                Listagem
-              </ListItem>
-              <Link to="/create/contact">
+              <Link to="/contact">
+                <ListItem placeholder="" onPointerEnterCapture="" onPointerLeaveCapture="">
+                  <ListItemPrefix placeholder="" onPointerEnterCapture="" onPointerLeaveCapture="">
+                    <ChevronRightIcon strokeWidth={3} className="h-3 w-5" />
+                  </ListItemPrefix>
+                  Listagem
+                </ListItem>
+              </Link>
+              <Link to="/contact/create">
                 <ListItem placeholder="" onPointerEnterCapture="" onPointerLeaveCapture="">
                   <ListItemPrefix placeholder="" onPointerEnterCapture="" onPointerLeaveCapture="">
                     <ChevronRightIcon strokeWidth={3} className="h-3 w-5" />

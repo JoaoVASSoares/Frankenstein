@@ -1,14 +1,13 @@
-version: '3.9'
 services:
   postgres:
     image: postgres:latest
-    container_name: postgres_container
+    container_name: frankenstein_postgres
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: toor
-      POSTGRES_DB: contactbook
+      POSTGRES_DB: frankenstein
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

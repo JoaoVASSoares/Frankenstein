@@ -11,3 +11,20 @@
 #app {
   display: flex;
 }
+
+.active {
+  border-radius: 16px;
+  background-color: #ddd;
+}
+
+.Toastify__toast--success {
+  background-color: #4caf50;
+}
+
+.Toastify__toast--error {
+  background-color: #f44336;
+}
+
+.swal2-confirm {
+  background-color: black;
+}
