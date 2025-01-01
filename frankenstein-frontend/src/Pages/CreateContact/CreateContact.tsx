@@ -76,7 +76,7 @@ const CreateContact = () => {
     const newContactFormData = new FormData();
     newContactFormData.append("name", name);
     newContactFormData.append("lastName", lastName);
-    newContactFormData.append("birthday", birthday ? format(birthday, "yyyy-mm-dd") : "");
+    newContactFormData.append("birthday", birthday ? format(birthday, "yyyy-MM-dd") : "");
     if (imageFile) {
       newContactFormData.append("contactImage", imageFile);
     }
@@ -116,11 +116,11 @@ const CreateContact = () => {
         navigate("/contact");
       } else {
         const errorData = await response.json();
-
+        console.log(errorData);
         Swal.fire({
           icon: "error",
           title: "Erro ao criar contato",
-          text: errorData.error || "Ocorreu um erro inesperado.",
+          text: errorData.error.message || "Ocorreu um erro inesperado.",
         });
 
         setLoadingButton(false);

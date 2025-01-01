@@ -11,23 +11,24 @@ export class ContactService {
     // Injetando o repositorio (Entity)
     @InjectRepository(Contact)
     private readonly contactRepository: Repository<Contact>,
+    // Chamando o imageUpload
     private readonly imageUpload: ImageUpload,
   ) {}
 
   public async create(contact: CreateContactDto, contactProfileImage: Express.Multer.File): Promise<Contact | string> {
+    if (contact.birthday) {
+      const birthdayFormat = /^\d{4}-\d{2}-\d{2}$/;
+
+      if (!birthdayFormat.test(contact.birthday)) {
+        throw new BadRequestException("The format of birthday data must be yyyy-mm-dd.");
+      }
+    }
+
+    if (contactProfileImage) {
+      contact.contactImage = await this.imageUpload.contactImage(contactProfileImage);
+    }
+
     try {
-      if (contact.birthday) {
-        const birthdayFormat = /^\d{4}-\d{2}-\d{2}$/;
-
-        if (!birthdayFormat.test(contact.birthday)) {
-          throw new BadRequestException("The format of birthday data must be yyyy-mm-dd.");
-        }
-      }
-
-      if (contactProfileImage) {
-        contact.contactImage = await this.imageUpload.contactImage(contactProfileImage);
-      }
-
       const contactToSaved = {
         name: contact.name.trim(),
         lastname: contact.lastName.trim(),
@@ -48,12 +49,11 @@ export class ContactService {
         deleted_at: null,
       };
 
-      const newContact = this.contactRepository.create(contactToSaved);
-      const contactSave = this.contactRepository.save(newContact);
+      const contactSave = this.contactRepository.save(contactToSaved);
 
       return contactSave;
     } catch (error) {
-      throw new BadRequestException(error, "Failed to create a new contact!");
+      throw new BadRequestException("Failed to create a new contact!");
     }
   }
 }
