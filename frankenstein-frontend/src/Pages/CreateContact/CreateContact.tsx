@@ -16,21 +16,23 @@ import { useNavigate } from "react-router-dom";
 
 const CreateContact = () => {
   // Definição dos states utilizados em minha aplicação
-  const [name, setName] = useState<string>("");
-  const [lastName, setLatName] = useState<string>("");
-  const [birthday, setBirthday] = useState<Date>();
-  const [phone, setPhone] = useState<string>("");
-  const [whatsapp, setWhatsapp] = useState<string>("");
-  const [zipCode, setZipCode] = useState<string>("");
-  const [publicPlace, setPublicPlace] = useState<string>("");
-  const [neighborhood, setNeighborhood] = useState<string>("");
-  const [city, setCity] = useState<string>("");
-  const [state, setState] = useState<string>("");
-  const [number, setNumber] = useState<string>("");
-  const [complement, setComplement] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
+  const [formData, setFormData] = useState({
+    name: "",
+    lastName: "",
+    birthday: undefined as Date | undefined,
+    phone: "",
+    whatsapp: "",
+    zipCode: "",
+    publicPlace: "",
+    neighborhood: "",
+    city: "",
+    state: "",
+    number: "",
+    complement: "",
+    email: "",
+  });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
   const [loadingZipCode, setLoadingZipCode] = useState<boolean>(false);
   const [disabledInputs, setDisabledInputs] = useState<boolean>(true);
   const [readOnlyInputs, setReadOnlyInputs] = useState<boolean>(false);
@@ -39,66 +41,89 @@ const CreateContact = () => {
   // Use navigate para termos navegações
   const navigate = useNavigate();
 
-  const handleSubmitForm = async () => {
-    setLoadingButton(true);
+  // Função para mudar os valores dos stados no objeto formData
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
-    // Criação do objetos de erros.
+  // Função para validar o formulário
+  const validateForm = () => {
     const newErrors: { [key: string]: boolean } = {};
 
-    // Validar campos obrigatórios
-    if (!name.trim()) newErrors.name = true;
-    if (!lastName.trim()) newErrors.lastName = true;
-    if (!birthday) newErrors.birthday = true;
-    if (!zipCode) newErrors.zipCode = true;
-    if (!publicPlace) newErrors.publicPlace = true;
-    if (!neighborhood) newErrors.neighborhood = true;
-    if (!city) newErrors.city = true;
-    if (!state) newErrors.state = true;
-    if (!number) newErrors.number = true;
-    if (!email) newErrors.email = true;
+    Object.entries(formData).forEach(([key, value]) => {
+      if (!["complement", "phone", "whatsapp"].includes(key) && !value) {
+        newErrors[key] = true; // Marcar erro se não estiver preenchido e não for opcional
+      }
+    });
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    // Verifica se o email esta no formato correto.
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(formData.email)) {
       newErrors.email = true;
     }
 
     setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      lastName: "",
+      birthday: undefined,
+      phone: "",
+      whatsapp: "",
+      zipCode: "",
+      publicPlace: "",
+      neighborhood: "",
+      city: "",
+      state: "",
+      number: "",
+      complement: "",
+      email: "",
+    });
+  };
+
+  const buildFormData = (data: { [key: string]: any }, imageFile?: File | null): FormData => {
+    const formData = new FormData();
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (key === "birthday" && value) {
+        // Formata a data antes de enviar
+        formData.append(key, format(value as Date, "yyyy-MM-dd"));
+      } else if (key === "zipCode" || key === "phone" || (key === "whatsapp" && value)) {
+        formData.append(key, value.replace(/\D/g, ""));
+      } else if (value !== undefined && value !== null) {
+        // Converte o valor para string (exceto arquivos)
+        formData.append(key, value.toString());
+      }
+    });
+
+    if (imageFile) {
+      formData.append("contactImage", imageFile);
+    }
+
+    return formData;
+  };
+
+  const handleSubmitForm = async () => {
+    setLoadingButton(true);
 
     // Se houver erros, não envie o formulário
-    if (Object.keys(newErrors).length > 0) {
+    if (!validateForm()) {
       setLoadingButton(false);
       return;
     }
 
     // Por ser ter imagem e o formato der "multipart/form-data" utilizando o form data para construir o body da request
-    const newContactFormData = new FormData();
-    newContactFormData.append("name", name);
-    newContactFormData.append("lastName", lastName);
-    newContactFormData.append("birthday", birthday ? format(birthday, "yyyy-MM-dd") : "");
-    if (imageFile) {
-      newContactFormData.append("contactImage", imageFile);
-    }
-    newContactFormData.append("email", email);
-    newContactFormData.append("phone", phone ? phone.replace(/\D/g, "") : "");
-    newContactFormData.append("whatsapp", whatsapp ? whatsapp.replace(/\D/g, "") : "");
-    newContactFormData.append("zipCode", zipCode ? zipCode.replace(/\D/g, "") : "");
-    newContactFormData.append("publicPlace", publicPlace);
-    newContactFormData.append("neighborhood", neighborhood);
-    newContactFormData.append("city", city);
-    newContactFormData.append("state", state);
-    newContactFormData.append("number", number);
-    newContactFormData.append("complement", complement);
-
+    const newContactFormData = buildFormData(formData, imageFile);
     try {
       const response = await fetch("http://localhost:3000/api/v1/contact", {
         method: "POST",
-        body: newContactFormData, // Corpo da requisição com FormData
+        body: newContactFormData, // Corpo da requisição com FormData por causa da imagem.
       });
 
       if (response.ok) {
-        await response.json();
+        resetForm();
 
         // Notificação de sucesso
         toast.success("Contato criado com sucesso!", {
@@ -116,7 +141,7 @@ const CreateContact = () => {
         navigate("/contact");
       } else {
         const errorData = await response.json();
-        console.log(errorData);
+
         Swal.fire({
           icon: "error",
           title: "Erro ao criar contato",
@@ -150,36 +175,48 @@ const CreateContact = () => {
           throw new Error("CEP não encontrado");
         }
 
-        setPublicPlace(adressJson.logradouro);
-        setNeighborhood(adressJson.bairro);
-        setCity(adressJson.localidade);
-        setState(adressJson.estado);
+        setFormData(prev => ({
+          ...prev,
+          publicPlace: adressJson.logradouro,
+          neighborhood: adressJson.bairro,
+          city: adressJson.localidade,
+          state: adressJson.estado,
+        }));
+
         setDisabledInputs(false);
         setReadOnlyInputs(true);
-      } catch (err: any) {
+      } catch (err) {
+        setFormData(prev => ({
+          ...prev,
+          publicPlace: "",
+          neighborhood: "",
+          city: "",
+          state: "",
+        }));
+
         setDisabledInputs(false);
         setReadOnlyInputs(false);
-        setPublicPlace("");
-        setNeighborhood("");
-        setCity("");
-        setState("");
       } finally {
         setLoadingZipCode(false);
       }
     } else {
+      setFormData(prev => ({
+        ...prev,
+        publicPlace: "",
+        neighborhood: "",
+        city: "",
+        state: "",
+      }));
+
       setDisabledInputs(true);
       setReadOnlyInputs(true);
-      setPublicPlace("");
-      setNeighborhood("");
-      setCity("");
-      setState("");
     }
   };
 
   // é chamado toda vez que o zipcode muda
   useEffect(() => {
-    getFullAdress(zipCode);
-  }, [zipCode]);
+    getFullAdress(formData.zipCode);
+  }, [formData.zipCode]);
 
   return (
     <>
@@ -202,8 +239,8 @@ const CreateContact = () => {
                   label="Nome"
                   placeholder="Digite o nome..."
                   icon={<UserIcon />}
-                  value={name}
-                  onChange={e => setName(e.target.value)}
+                  value={formData.name}
+                  onChange={e => handleInputChange("name", e.target.value)}
                   error={errors.name ?? false}
                   required
                   onPointerEnterCapture=""
@@ -217,8 +254,8 @@ const CreateContact = () => {
                   label="Sobrenome"
                   placeholder="Digite o sobrenome..."
                   icon={<UserIcon />}
-                  value={lastName}
-                  onChange={e => setLatName(e.target.value)}
+                  value={formData.lastName}
+                  onChange={e => handleInputChange("lastName", e.target.value)}
                   error={errors.lastName ?? false}
                   required
                   onPointerEnterCapture=""
@@ -236,8 +273,8 @@ const CreateContact = () => {
                     variant="static"
                     label="Data de nascimento"
                     placeholder="Selecione a data de nascimento..."
-                    value={birthday ? format(birthday, "P", { locale: brazilian }) : ""}
-                    onChange={(e: any) => setBirthday(e.target.value)}
+                    value={formData.birthday ? format(formData.birthday, "P", { locale: brazilian }) : ""}
+                    onChange={e => handleInputChange("birthday", e.target.value)}
                     icon={<CalendarIcon />}
                     required
                     error={errors.birthday ?? false}
@@ -251,8 +288,8 @@ const CreateContact = () => {
                   <DayPicker
                     locale={ptBR}
                     mode="single"
-                    selected={birthday}
-                    onSelect={setBirthday}
+                    selected={formData.birthday}
+                    onSelect={date => handleInputChange("birthday", date)}
                     showOutsideDays
                     className="border-0"
                     hideNavigation
@@ -275,13 +312,41 @@ const CreateContact = () => {
               </Popover>
             </div>
             <div className="mt-7 col-span-1">
-              <InputMask mask="(99) 99999-9999" placeholder="(__) _____-____" value={phone} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}>
-                <Input variant="static" label="Telefone" placeholder="Digite o telefone..." icon={<PhoneIcon />} onPointerEnterCapture="" onPointerLeaveCapture="" crossOrigin="" />
+              <InputMask
+                mask="(99) 99999-9999"
+                placeholder="(__) _____-____"
+                value={formData.phone}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("phone", e.target.value)}
+              >
+                <Input
+                  type="tel"
+                  variant="static"
+                  label="Telefone"
+                  placeholder="Digite o telefone..."
+                  icon={<PhoneIcon />}
+                  onPointerEnterCapture=""
+                  onPointerLeaveCapture=""
+                  crossOrigin=""
+                />
               </InputMask>
             </div>
             <div className="mt-7 col-span-1">
-              <InputMask mask="(99) 99999-9999" placeholder="(__) _____-____" value={whatsapp} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setWhatsapp(e.target.value)}>
-                <Input placeholder="Digite o Whatsapp..." variant="static" label="Whatsapp" icon={<PhoneIcon />} onPointerEnterCapture="" onPointerLeaveCapture="" crossOrigin="" />
+              <InputMask
+                mask="(99) 99999-9999"
+                placeholder="(__) _____-____"
+                value={formData.whatsapp}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("whatsapp", e.target.value)}
+              >
+                <Input
+                  type="tel"
+                  placeholder="Digite o Whatsapp..."
+                  variant="static"
+                  label="Whatsapp"
+                  icon={<PhoneIcon />}
+                  onPointerEnterCapture=""
+                  onPointerLeaveCapture=""
+                  crossOrigin=""
+                />
               </InputMask>
             </div>
           </div>
@@ -290,8 +355,8 @@ const CreateContact = () => {
               <InputMask
                 mask="99999-999"
                 placeholder="_____-___"
-                value={zipCode}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setZipCode(e.target.value)}
+                value={formData.zipCode}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("zipCode", e.target.value)}
                 disabled={loadingZipCode}
               >
                 <Input
@@ -314,8 +379,8 @@ const CreateContact = () => {
                 label="Logadouro"
                 placeholder="Digite o logadouro"
                 icon={<MapPinIcon />}
-                value={publicPlace}
-                onChange={e => setPublicPlace(e.target.value)}
+                value={formData.publicPlace}
+                onChange={e => handleInputChange("publicPlace", e.target.value)}
                 className="disabled"
                 error={errors.publicPlace ?? false}
                 disabled={disabledInputs}
@@ -333,8 +398,8 @@ const CreateContact = () => {
                 placeholder="Digite o bairro"
                 icon={<MapPinIcon />}
                 className="disabled"
-                value={neighborhood}
-                onChange={e => setNeighborhood(e.target.value)}
+                value={formData.neighborhood}
+                onChange={e => handleInputChange("neighborhood", e.target.value)}
                 error={errors.neighborhood ?? false}
                 required
                 disabled={disabledInputs}
@@ -353,8 +418,8 @@ const CreateContact = () => {
                 placeholder="Digite o cidade"
                 icon={<MapPinIcon />}
                 className="disabled"
-                value={city}
-                onChange={e => setCity(e.target.value)}
+                value={formData.city}
+                onChange={e => handleInputChange("city", e.target.value)}
                 disabled={disabledInputs}
                 readOnly={readOnlyInputs}
                 required
@@ -371,8 +436,8 @@ const CreateContact = () => {
                 placeholder="Digite o estado"
                 icon={<MapPinIcon />}
                 className="disabled"
-                value={state}
-                onChange={e => setState(e.target.value)}
+                value={formData.state}
+                onChange={e => handleInputChange("state", e.target.value)}
                 error={errors.state ?? false}
                 disabled={disabledInputs}
                 readOnly={readOnlyInputs}
@@ -387,8 +452,8 @@ const CreateContact = () => {
                 variant="static"
                 label="Número"
                 placeholder="Digite o número"
-                value={number}
-                onChange={e => setNumber(e.target.value)}
+                value={formData.number}
+                onChange={e => handleInputChange("number", e.target.value)}
                 error={errors.number ?? false}
                 required
                 onPointerEnterCapture=""
@@ -405,8 +470,8 @@ const CreateContact = () => {
                 label="Complemento"
                 placeholder="Digite o complemento"
                 icon={<MapPinIcon />}
-                value={complement}
-                onChange={e => setComplement(e.target.value)}
+                value={formData.complement}
+                onChange={e => handleInputChange("complement", e.target.value)}
                 onPointerEnterCapture=""
                 onPointerLeaveCapture=""
                 crossOrigin=""
@@ -419,8 +484,8 @@ const CreateContact = () => {
                 label="E-mail"
                 placeholder="Digite o e-mail..."
                 icon={<AtSymbolIcon />}
-                value={email}
-                onChange={e => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={e => handleInputChange("email", e.target.value)}
                 error={errors.email ?? false}
                 required
                 onPointerEnterCapture=""

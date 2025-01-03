@@ -7,10 +7,12 @@ import SidBar from "./components/SideBar/SideBar";
 import { Card } from "@material-tailwind/react";
 import ContactIndex from "./Pages/ContactIndex/ContactIndex";
 import { ToastContainer, Zoom } from "react-toastify";
+import FPageTitleUpdater from "./layout/FPageTitleUpdater";
 
 function App() {
   return (
     <BrowserRouter>
+      <FPageTitleUpdater />
       <div className="grid grid-rows-[auto_1fr] grid-cols-[auto_1fr] h-screen">
         <NavBar />
         <SidBar />

@@ -1,9 +1,10 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { Contact } from "./entity/contact.entity";
 import { Repository } from "typeorm";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { CreateContactDto } from "./dto/createContact.dto";
 import { ImageUpload } from "../../core/ImageUpload";
+import * as dayjs from "dayjs";
 
 @Injectable()
 export class ContactService {
@@ -16,22 +17,21 @@ export class ContactService {
   ) {}
 
   public async create(contact: CreateContactDto, contactProfileImage: Express.Multer.File): Promise<Contact | string> {
-    if (contact.birthday) {
-      const birthdayFormat = /^\d{4}-\d{2}-\d{2}$/;
-
-      if (!birthdayFormat.test(contact.birthday)) {
-        throw new BadRequestException("The format of birthday data must be yyyy-mm-dd.");
-      }
+    if (contact.birthday && !dayjs(contact.birthday, "YYYY-MM-DD", true).isValid()) {
+      throw new BadRequestException("The format of birthday data must be yyyy-mm-dd, and it must be a valid date.");
     }
 
     if (contactProfileImage) {
-      contact.contactImage = await this.imageUpload.contactImage(contactProfileImage);
+      try {
+        contact.contactImage = await this.imageUpload.contactImage(contactProfileImage);
+      } catch (error) {
+        throw new InternalServerErrorException("Failed to upload profile image", error.message);
+      }
     }
-
     try {
       const contactToSaved = {
         name: contact.name.trim(),
-        lastname: contact.lastName.trim(),
+        last_name: contact.lastName.trim(),
         birthday: contact.birthday.trim(),
         email: contact.email.trim(),
         contact_image: contact.contactImage,
@@ -55,5 +55,11 @@ export class ContactService {
     } catch (error) {
       throw new BadRequestException("Failed to create a new contact!");
     }
+  }
+
+  public async getAll(): Promise<Contact[]> {
+    const getAllContact = await this.contactRepository.find();
+
+    return getAllContact;
   }
 }

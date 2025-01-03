@@ -6,13 +6,13 @@ export class Contact {
   id: number;
 
   @Column({ nullable: true })
-  userId: string;
+  user_id: string;
 
   @Column({ nullable: false })
   name: string;
 
   @Column({ nullable: false })
-  lastname: string;
+  last_name: string;
 
   @Column({ type: "date", nullable: false })
   birthday: Date;

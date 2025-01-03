@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsDate, IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsDate, IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
 
 export class CreateContactDto {
   @ApiProperty({ description: "Contact first name", format: "string", type: "string" })
@@ -14,7 +14,9 @@ export class CreateContactDto {
 
   @ApiProperty({ description: "Contact's birthday date in the format YYYY-MM-DD", format: "Date", type: "string" })
   @IsString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: "The format of birthday data must be yyyy-mm-dd." })
   @IsNotEmpty()
+  @IsDateString({}, { message: "The birthday must be a valid date." })
   birthday: string;
 
   @ApiPropertyOptional({ description: "Contact profile photo", type: "string", format: "binary" })

@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { ContactService } from "./contact.service";
 import { CreateContactDto } from "./dto/createContact.dto";
@@ -23,5 +23,14 @@ export class ContactController {
   })
   public async create(@Body() contact: CreateContactDto, @UploadedFile() profile_image: Express.Multer.File): Promise<Contact | string> {
     return this.contactService.create(contact, profile_image);
+  }
+
+  @Get()
+  @UsePipes(ValidationPipe)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get contact list", description: "Get contact list" })
+  @ApiResponse({ status: HttpStatus.OK, description: "Get contact list", type: [CreateContactDto] })
+  public async getAll(): Promise<Contact[]> {
+    return this.contactService.getAll();
   }
 }

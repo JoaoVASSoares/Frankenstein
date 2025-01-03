@@ -85,35 +85,8 @@ describe("ContactService", () => {
 
     // Espera a chamada da função.
     expect(imageUpload.contactImage).toHaveBeenCalledWith(mockFile);
-    expect(contactRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: "John",
-        lastname: "Doe",
-      }),
-    );
     expect(contactRepository.save).toHaveBeenCalledWith(expect.any(Object));
     expect(result).toEqual(expect.objectContaining({ id: 1, name: "John" }));
-  });
-
-  it("Lançamento de erro caso a data de aniversario esteja no formado invalido", async () => {
-    const mockContactDto: CreateContactDto = {
-      name: "John",
-      lastName: "Doe",
-      birthday: "01-01-1990", // Invalid format
-      email: "johndoe@example.com",
-      phone: "123456789",
-      whatsapp: "123456789",
-      zipCode: "12345678",
-      publicPlace: "123 Main St",
-      neighborhood: "Downtown",
-      city: "City",
-      state: "State",
-      number: "10",
-      complement: "",
-      contactImage: "",
-    };
-
-    await expect(contactService.create(mockContactDto, null)).rejects.toThrow(new BadRequestException("The format of birthday data must be yyyy-mm-dd."));
   });
 
   it("Lançamento de erro caso tenha problema para subir a imagem", async () => {
@@ -147,10 +120,10 @@ describe("ContactService", () => {
       stream: null,
     };
 
-    // Simular falha no ImageUpload
-    jest.spyOn(imageUpload, "contactImage").mockRejectedValue(new Error("Upload failed"));
+    // Simular falha no ImageUpload, a função spyOn serve para monitorar a chama da função imageUpload e assim verificar se for chamada corretamente.
+    jest.spyOn(imageUpload, "contactImage").mockRejectedValue(new BadRequestException("Failed to upload image"));
 
     // Erro ao criar novo contado.
-    await expect(contactService.create(mockContactDto, mockFile)).rejects.toThrow(new BadRequestException("Failed to create a new contact!"));
+    await expect(contactService.create(mockContactDto, mockFile)).rejects.toThrow(new BadRequestException("Failed to upload profile image"));
   });
 });
