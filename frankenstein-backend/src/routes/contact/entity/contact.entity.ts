@@ -57,5 +57,5 @@ export class Contact {
   updated_at: Date;
 
   @DeleteDateColumn({ type: "timestamp", nullable: true })
-  deleted_at: Date | null;
+  deleted_at: Date;
 }

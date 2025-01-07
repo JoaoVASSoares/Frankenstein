@@ -1,6 +1,6 @@
 import "./createContact.css";
 import { Button, CardBody, CardHeader, Input, Popover, PopoverContent, PopoverHandler, Typography } from "@material-tailwind/react";
-import ImageCropper from "../../components/ImageCropper/ImageCropper";
+import ImageCropper from "../../../components/ImageCropper/ImageCropper";
 import { DayPicker } from "react-day-picker";
 import { format } from "date-fns";
 import { ptBR } from "react-day-picker/locale";
@@ -9,7 +9,7 @@ import { AtSymbolIcon, CalendarIcon, MapPinIcon, UserIcon } from "@heroicons/rea
 import { PhoneIcon } from "@heroicons/react/24/solid";
 import InputMask from "react-input-mask";
 import { useEffect, useState } from "react";
-import FLoadingSpinnerInput from "../../layout/FLoadingSpinnerInput";
+import FLoadingSpinnerInput from "../../../layout/FLoadingSpinnerInput";
 import { toast, Zoom } from "react-toastify";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
@@ -220,10 +220,10 @@ const CreateContact = () => {
 
   return (
     <>
-      <CardHeader className="bg-gray-900 p-5" placeholder="" onPointerEnterCapture="" onPointerLeaveCapture="">
+      <CardHeader className="bg-gray-900 p-5" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <span className="text-white uppercase font-bold">Adicionar novo contato</span>
       </CardHeader>
-      <CardBody placeholder="" onPointerEnterCapture="" onPointerLeaveCapture="">
+      <CardBody placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <Typography color="gray" className="mt-1 font-normal" placeholder="" onPointerEnterCapture="" onPointerLeaveCapture="">
           Adicione um novo contato em sua agenda.
         </Typography>

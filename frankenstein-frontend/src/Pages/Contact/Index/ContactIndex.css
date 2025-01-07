@@ -1,0 +1,11 @@
+#noContactTh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  font-size: 1rem;
+  color: rgb(97, 97, 97);
+  margin-top: 20px;
+}
+
+

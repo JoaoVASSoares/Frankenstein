@@ -1,10 +1,13 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { Contact } from "./entity/contact.entity";
 import { Repository } from "typeorm";
-import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { CreateContactDto } from "./dto/createContact.dto";
 import { ImageUpload } from "../../core/ImageUpload";
 import * as dayjs from "dayjs";
+import { DefaultPaginationQueryDto } from "src/core/DefaultPaginationQuery";
+import { paginate, Pagination } from "nestjs-typeorm-paginate";
+import { UpdateContactDto } from "./dto/updateContact.dto";
 
 @Injectable()
 export class ContactService {
@@ -57,9 +60,38 @@ export class ContactService {
     }
   }
 
-  public async getAll(): Promise<Contact[]> {
-    const getAllContact = await this.contactRepository.find();
+  public async getAll(query: DefaultPaginationQueryDto): Promise<Pagination<Contact>> {
+    const queryBuilder = this.contactRepository.createQueryBuilder("contact");
 
-    return getAllContact;
+    // Adicionar cláusula WHERE para LIKE se "search" for fornecido
+    if (query.search) {
+      queryBuilder.where(
+        "contact.name ILIKE :search OR contact.email ILIKE :search", // Busca no nome ou email
+        { search: `%${query.search}%` }, // Busca parcial
+      );
+    }
+
+    queryBuilder.orderBy("contact.id", "DESC");
+
+    return paginate<Contact>(queryBuilder, query);
+  }
+
+  public async findById(id: number): Promise<Contact | string> {
+    const contact = await this.contactRepository.findOneBy({ id: id });
+
+    if (!contact) {
+      throw new NotFoundException(`Contact with ID ${id} not found`);
+    }
+
+    return contact;
+  }
+
+  // Criar as funções
+  public async update(id: number, contact: UpdateContactDto, contactProfileImage: Express.Multer.File): Promise<Contact | string> {
+    return "";
+  }
+
+  public async delete(id: number): Promise<null | string> {
+    return "";
   }
 }
