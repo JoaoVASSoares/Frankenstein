@@ -5,57 +5,57 @@ export class Contact {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: true })
-  user_id: string;
+  @Column({ name: "user_id", nullable: true })
+  userId: string;
 
-  @Column({ nullable: false })
+  @Column({ name: "name", nullable: false })
   name: string;
 
-  @Column({ nullable: false })
-  last_name: string;
+  @Column({ name: "last_name", nullable: false })
+  lastName: string;
 
-  @Column({ type: "date", nullable: false })
+  @Column({ name: "birthday", type: "date", nullable: false })
   birthday: Date;
 
-  @Column({ unique: true, nullable: false })
+  @Column({ name: "email", unique: true, nullable: false })
   email: string;
 
-  @Column({ nullable: true })
-  contact_image: string;
+  @Column({ name: "contact_image", nullable: true })
+  contactImage: string;
 
-  @Column({ nullable: true })
+  @Column({ name: "phone", nullable: true })
   phone: string;
 
-  @Column({ nullable: true })
+  @Column({ name: "whatsapp", nullable: true })
   whatsapp: string;
 
-  @Column({ nullable: false })
-  zip_code: string;
+  @Column({ name: "zip_code", nullable: false })
+  zipCode: string;
 
-  @Column({ nullable: false })
-  public_place: string;
+  @Column({ name: "public_place", nullable: false })
+  publicPlace: string;
 
-  @Column({ nullable: false })
+  @Column({ name: "neighborhood", nullable: false })
   neighborhood: string;
 
-  @Column({ nullable: false })
+  @Column({ name: "city", nullable: false })
   city: string;
 
-  @Column({ nullable: false })
+  @Column({ name: "state", nullable: false })
   state: string;
 
-  @Column({ nullable: false })
+  @Column({ name: "number", nullable: false })
   number: string;
 
-  @Column({ nullable: false })
+  @Column({ name: "complement", nullable: false })
   complement: string;
 
-  @CreateDateColumn({ type: "timestamp" })
-  created_at: Date;
+  @CreateDateColumn({ name: "created_at", type: "timestamp" })
+  createdAt: Date;
 
-  @UpdateDateColumn({ type: "timestamp", nullable: true })
-  updated_at: Date;
+  @UpdateDateColumn({ name: "updated_at", type: "timestamp", nullable: true })
+  updatedAt: Date;
 
-  @DeleteDateColumn({ type: "timestamp", nullable: true })
-  deleted_at: Date;
+  @DeleteDateColumn({ name: "deleted_at", type: "timestamp", nullable: true })
+  deletedAt: Date;
 }

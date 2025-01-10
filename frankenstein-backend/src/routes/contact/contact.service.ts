@@ -19,40 +19,20 @@ export class ContactService {
     private readonly imageUpload: ImageUpload,
   ) {}
 
-  public async create(contact: CreateContactDto, contactProfileImage: Express.Multer.File): Promise<Contact | string> {
-    if (contact.birthday && !dayjs(contact.birthday, "YYYY-MM-DD", true).isValid()) {
+  public async create(contactData: CreateContactDto, contactProfileImage: Express.Multer.File): Promise<Contact | string> {
+    if (contactData.birthday && !dayjs(contactData.birthday, "YYYY-MM-DD", true).isValid()) {
       throw new BadRequestException("The format of birthday data must be yyyy-mm-dd, and it must be a valid date.");
     }
 
     if (contactProfileImage) {
       try {
-        contact.contactImage = await this.imageUpload.contactImage(contactProfileImage);
+        contactData.contactImage = await this.imageUpload.contactImage(contactProfileImage);
       } catch (error) {
         throw new InternalServerErrorException("Failed to upload profile image", error.message);
       }
     }
     try {
-      const contactToSaved = {
-        name: contact.name.trim(),
-        last_name: contact.lastName.trim(),
-        birthday: contact.birthday.trim(),
-        email: contact.email.trim(),
-        contact_image: contact.contactImage,
-        phone: contact.phone.trim(),
-        whatsapp: contact.whatsapp.trim(),
-        zip_code: contact.zipCode.trim(),
-        public_place: contact.publicPlace.trim(),
-        neighborhood: contact.neighborhood.trim(),
-        city: contact.city.trim(),
-        state: contact.state.trim(),
-        number: contact.number.trim(),
-        complement: contact.complement.trim(),
-        created_at: new Date(),
-        updated_at: null,
-        deleted_at: null,
-      };
-
-      const contactSave = this.contactRepository.save(contactToSaved);
+      const contactSave = this.contactRepository.save(contactData);
 
       return contactSave;
     } catch (error) {
@@ -87,11 +67,34 @@ export class ContactService {
   }
 
   // Criar as funções
-  public async update(id: number, contact: UpdateContactDto, contactProfileImage: Express.Multer.File): Promise<Contact | string> {
-    return "";
+  public async update(id: number, contactData: UpdateContactDto, contactProfileImage: Express.Multer.File): Promise<Contact | string> {
+    await this.findById(id);
+
+    if (contactData.birthday && !dayjs(contactData.birthday, "YYYY-MM-DD", true).isValid()) {
+      throw new BadRequestException("The format of birthday data must be yyyy-mm-dd, and it must be a valid date.");
+    }
+
+    if (contactProfileImage) {
+      try {
+        contactData.contactImage = await this.imageUpload.contactImage(contactProfileImage);
+      } catch (error) {
+        throw new InternalServerErrorException("Failed to upload profile image", error.message);
+      }
+    }
+
+    try {
+      await this.contactRepository.update(id, contactData);
+
+      return this.findById(id);
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException("Failed to updated a contact!");
+    }
   }
 
-  public async delete(id: number): Promise<null | string> {
-    return "";
+  public async delete(id: number): Promise<void> {
+    await this.findById(id);
+
+    await this.contactRepository.softDelete({ id: id });
   }
 }

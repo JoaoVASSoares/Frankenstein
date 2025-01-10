@@ -17,8 +17,11 @@ import { join } from "path";
       username: process.env.DEVELOPMENT_DB_USERNAME,
       password: process.env.DEVELOPMENT_DB_PASSWORD,
       database: process.env.DEVELOPMENT_DB_DATABASE,
-      autoLoadEntities: true,
-      synchronize: true,
+      entities: [`${__dirname}/**/*.entity{.js,.ts}`], // Declaração das entidades
+      migrations: [`${__dirname}/routes/**/migrations/*{.ts,.js}`],
+      migrationsRun: true,
+      // autoLoadEntities: true,
+      // synchronize: true,
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "..", "uploads"), // Diretório base para arquivos estáticos

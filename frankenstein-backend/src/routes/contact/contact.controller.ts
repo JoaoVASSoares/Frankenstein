@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Query, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
-import { ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { ContactService } from "./contact.service";
 import { CreateContactDto } from "./dto/createContact.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -63,10 +63,10 @@ export class ContactController {
 
   @Delete(":id")
   @UsePipes(ValidationPipe)
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete a one contact", description: "Delete a one contact" })
-  @ApiResponse({ status: HttpStatus.OK, description: "Delete a one contact" })
-  public async delete(@Param("id") id: number): Promise<null | string> {
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: "Delete a one contact" })
+  public async delete(@Param("id") id: number): Promise<void> {
     return this.contactService.delete(id);
   }
 }

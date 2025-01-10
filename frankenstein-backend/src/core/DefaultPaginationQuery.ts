@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from "class-validator";
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class DefaultPaginationQueryDto {
   @ApiProperty({ description: "Number of items on a page", default: 5, readOnly: true })
@@ -18,7 +18,7 @@ export class DefaultPaginationQueryDto {
   @IsOptional()
   page: number;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   search?: string;
