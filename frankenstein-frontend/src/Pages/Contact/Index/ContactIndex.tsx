@@ -4,7 +4,7 @@ import { Avatar, Button, Card, CardBody, CardFooter, CardHeader, IconButton, Inp
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { defaultUserURL, imageURL } from "../../../core/Constants";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { formatPhoneNumber } from "../../../core/Formatters";
 import FLoadingComponent from "../../../layout/FLoadingComponent/FLoadingComponent";
 import Swal from "sweetalert2";
@@ -25,13 +25,12 @@ const ContactIndex = () => {
 
   const fetchContacts = async (page: number = 1, search: string | null = null) => {
     try {
-      let response;
+      let response = await fetch(`http://localhost:3000/api/v1/contact?limit=5${page ? `&page=${page}` : ""}${search ? `&search=${search}` : ""}`);
+
       if (search) {
-        response = await fetch(`http://localhost:3000/api/v1/contact?limit=5&page=${page}&search=${search}`);
         setPage(1);
-      } else {
-        response = await fetch(`http://localhost:3000/api/v1/contact?limit=5&page=${page}`);
       }
+
       if (!response.ok) {
         throw new Error(`Erro na requisição: ${response.statusText}`);
       }
@@ -186,7 +185,7 @@ const ContactIndex = () => {
                 </thead>
                 <tbody>
                   {allContact.length > 0 ? (
-                    allContact.map(({ id, contact_image, name, last_name, email, birthday, phone, whatsapp }, index) => {
+                    allContact.map(({ id, contactImage, name, lastName, email, birthday, phone, whatsapp }, index) => {
                       const isLast = index === allContact.length - 1;
                       const classes = isLast ? "p-4" : "p-4 border-b border-blue-gray-50";
 
@@ -195,7 +194,7 @@ const ContactIndex = () => {
                           <td className={classes}>
                             <div className="flex items-center gap-3">
                               <Avatar
-                                src={contact_image ? `${imageURL}${contact_image}` : defaultUserURL}
+                                src={contactImage ? `${imageURL}${contactImage}` : defaultUserURL}
                                 alt={name}
                                 size="sm"
                                 placeholder={undefined}
@@ -211,7 +210,7 @@ const ContactIndex = () => {
                                   onPointerEnterCapture={undefined}
                                   onPointerLeaveCapture={undefined}
                                 >
-                                  {`${name} ${last_name}`}
+                                  {`${name} ${lastName}`}
                                 </Typography>
                                 <Typography
                                   variant="small"
@@ -235,7 +234,7 @@ const ContactIndex = () => {
                               onPointerEnterCapture={undefined}
                               onPointerLeaveCapture={undefined}
                             >
-                              {birthday ? format(birthday, "dd/MM/yyyy") : ""}
+                              {birthday ? format(parseISO(birthday), "dd/MM/yyy") : ""}
                             </Typography>
                           </td>
                           <td className={`${classes} text-center`}>
