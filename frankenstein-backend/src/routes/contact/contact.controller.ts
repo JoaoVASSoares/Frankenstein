@@ -7,6 +7,7 @@ import { Contact } from "./entity/contact.entity";
 import { DefaultPaginationQueryDto } from "src/core/DefaultPaginationQuery";
 import { Pagination } from "nestjs-typeorm-paginate";
 import { UpdateContactDto } from "./dto/updateContact.dto";
+import { ApiErrorResponseBadRequest } from "src/core/responses/decorators/ApiDecoratos";
 
 @ApiTags("Contact")
 @Controller("api/v1/contact")
@@ -24,6 +25,12 @@ export class ContactController {
     description: "Successfully created a new contact",
     type: CreateContactDto,
   })
+  @ApiErrorResponseBadRequest([
+    "The format of birthday data must be yyyy-mm-dd, and it must be a valid date.",
+    "Failed to create a new contact!",
+    "Invalid file type. Only image files are allowed.",
+    "Failed to upload profile image",
+  ])
   public async create(@Body() contact: CreateContactDto, @UploadedFile() profile_image: Express.Multer.File): Promise<Contact | string> {
     return this.contactService.create(contact, profile_image);
   }

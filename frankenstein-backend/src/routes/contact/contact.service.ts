@@ -1,7 +1,7 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { Contact } from "./entity/contact.entity";
 import { Repository } from "typeorm";
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateContactDto } from "./dto/createContact.dto";
 import { ImageUpload } from "../../core/ImageUpload";
 import * as dayjs from "dayjs";
@@ -25,12 +25,9 @@ export class ContactService {
     }
 
     if (contactProfileImage) {
-      try {
-        contactData.contactImage = await this.imageUpload.contactImage(contactProfileImage);
-      } catch (error) {
-        throw new InternalServerErrorException("Failed to upload profile image", error.message);
-      }
+      contactData.contactImage = await this.imageUpload.contactImage(contactProfileImage);
     }
+
     try {
       const contactSave = this.contactRepository.save(contactData);
 
@@ -56,7 +53,7 @@ export class ContactService {
     return paginate<Contact>(queryBuilder, query);
   }
 
-  public async findById(id: number): Promise<Contact | string> {
+  public async findById(id: number): Promise<Contact> {
     const contact = await this.contactRepository.findOneBy({ id: id });
 
     if (!contact) {
@@ -68,24 +65,25 @@ export class ContactService {
 
   // Criar as funções
   public async update(id: number, contactData: UpdateContactDto, contactProfileImage: Express.Multer.File): Promise<Contact | string> {
-    await this.findById(id);
+    // Verifica se o contato existe antes de prosseguir
+    const existingContact = await this.findById(id);
 
     if (contactData.birthday && !dayjs(contactData.birthday, "YYYY-MM-DD", true).isValid()) {
       throw new BadRequestException("The format of birthday data must be yyyy-mm-dd, and it must be a valid date.");
     }
 
     if (contactProfileImage) {
-      try {
-        contactData.contactImage = await this.imageUpload.contactImage(contactProfileImage);
-      } catch (error) {
-        throw new InternalServerErrorException("Failed to upload profile image", error.message);
-      }
+      contactData.contactImage = await this.imageUpload.contactImage(contactProfileImage);
     }
 
-    try {
-      await this.contactRepository.update(id, contactData);
+    // Atualiza os campos no objeto existente
+    const updatedContact = {
+      ...existingContact,
+      ...contactData, // Sobrescreve os valores do contato existente com os novos dados
+    };
 
-      return this.findById(id);
+    try {
+      return await this.contactRepository.save(updatedContact);
     } catch (error) {
       console.log(error);
       throw new BadRequestException("Failed to updated a contact!");
@@ -95,6 +93,6 @@ export class ContactService {
   public async delete(id: number): Promise<void> {
     await this.findById(id);
 
-    await this.contactRepository.softDelete({ id: id });
+    await this.contactRepository.softDelete(id);
   }
 }

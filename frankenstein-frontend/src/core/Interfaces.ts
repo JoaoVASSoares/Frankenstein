@@ -3,9 +3,9 @@ export interface IContact {
   birthday: string;
   city: string;
   complement: string;
-  contact_image: string;
+  contactImage: string;
   email: string;
-  last_name: string;
+  lastName: string;
   name: string;
   neighborhood: string;
   number: string;
