@@ -10,11 +10,10 @@ export interface IContact {
   neighborhood: string;
   number: string;
   phone: string;
-  public_place: string;
+  publicPlace: string;
   state: string;
-  user_id: null;
   whatsapp: string;
-  zip_code: string;
+  zipCode: string;
 }
 
 export interface IMetaPagination {
