@@ -51,7 +51,7 @@ const CreateContact = () => {
     const newErrors: { [key: string]: boolean } = {};
 
     Object.entries(formData).forEach(([key, value]) => {
-      if (!["complement", "phone", "whatsapp"].includes(key) && !value) {
+      if (!["complement", "phone", "whatsapp", "deletedAt", "updatedAt", "userId"].includes(key) && !value) {
         newErrors[key] = true; // Marcar erro se não estiver preenchido e não for opcional
       }
     });

@@ -47,11 +47,11 @@ export class CreateContactDto {
   whatsapp?: string;
 
   @ApiProperty({ description: "Contact zip codee on min or max length 8 number" })
+  @Transform(({ value }) => value.replace(/\D/g, ""))
   @MaxLength(8)
   @MinLength(8)
   @IsString()
   @IsNotEmpty()
-  @Transform(({ value }) => value?.trim())
   zipCode: string;
 
   @ApiProperty({ description: "Contact public place" })

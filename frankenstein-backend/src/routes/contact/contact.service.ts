@@ -64,7 +64,7 @@ export class ContactService {
   }
 
   // Criar as funções
-  public async update(id: number, contactData: UpdateContactDto, contactProfileImage: Express.Multer.File): Promise<Contact | string> {
+  public async update(id: number, contactData: UpdateContactDto, contactProfileImage: Express.Multer.File): Promise<Contact | string | any> {
     // Verifica se o contato existe antes de prosseguir
     const existingContact = await this.findById(id);
 
