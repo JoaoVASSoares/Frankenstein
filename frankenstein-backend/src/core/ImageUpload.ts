@@ -7,13 +7,19 @@ import * as fs from "fs/promises";
 export class ImageUpload {
   private readonly allowedMimeTypes = ["image/jpeg", "image/png", "image/jpg", "image/gif"];
 
-  public async contactImage(file: Express.Multer.File): Promise<string> {
+  /**
+   * Faz o upload da imagem de perfil do usuário ou do contato.
+   * @param file Arquivo enviado via multer.
+   * @param type Tipo de upload ("user" para usuários, "contact" para contatos).
+   * @returns Caminho relativo da imagem salva.
+   */
+  public async uploadImage(file: Express.Multer.File, type: "user" | "contact"): Promise<string> {
     // Verificar se o arquivo é uma imagem
     if (!this.allowedMimeTypes.includes(file.mimetype)) {
       throw new BadRequestException("Invalid file type. Only image files are allowed.");
     }
 
-    const uploadDir = "./uploads/contact/contact_image"; // Diretório base para upload
+    const uploadDir = `./uploads/${type}/${type == "user" ? "profile_image" : "contact_image"}`; // Diretório base para upload
 
     // Verificar se o diretório existe, caso contrário, criar
     try {
@@ -30,7 +36,7 @@ export class ImageUpload {
       await fs.writeFile(uploadPath, file.buffer);
 
       // Gerar o caminho relativo para uso no banco de dados
-      const relativePath = join("uploads", "contact", "contact_image", uniqueFilename);
+      const relativePath = join("uploads", type, `${type == "user" ? "profile_image" : "contact_image"}`, uniqueFilename);
 
       return relativePath;
     } catch (error) {

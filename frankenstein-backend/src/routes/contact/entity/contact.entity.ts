@@ -1,12 +1,14 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { User } from "src/routes/users/entity/user.entity";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
-@Entity("contact")
+@Entity("contacts")
 export class Contact {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: "user_id", nullable: true })
-  userId: string;
+  @OneToOne(() => User, { nullable: true, onDelete: "SET NULL", onUpdate: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
+  user: User;
 
   @Column({ name: "name", nullable: false })
   name: string;

@@ -25,11 +25,11 @@ export class ContactService {
     }
 
     if (contactProfileImage) {
-      contactData.contactImage = await this.imageUpload.contactImage(contactProfileImage);
+      contactData.contactImage = await this.imageUpload.uploadImage(contactProfileImage, "contact");
     }
 
     try {
-      const contactSave = this.contactRepository.save(contactData);
+      const contactSave = await this.contactRepository.save(contactData);
 
       return contactSave;
     } catch (error) {
@@ -37,7 +37,7 @@ export class ContactService {
     }
   }
 
-  public async getAll(query: DefaultPaginationQueryDto): Promise<Pagination<Contact>> {
+  public async findAll(query: DefaultPaginationQueryDto): Promise<Pagination<Contact>> {
     const queryBuilder = this.contactRepository.createQueryBuilder("contact");
 
     // Adicionar cláusula WHERE para LIKE se "search" for fornecido
@@ -48,7 +48,7 @@ export class ContactService {
       );
     }
 
-    queryBuilder.orderBy("contact.id", "DESC");
+    queryBuilder.orderBy("contact.id", query.order);
 
     return paginate<Contact>(queryBuilder, query);
   }
@@ -63,8 +63,7 @@ export class ContactService {
     return contact;
   }
 
-  // Criar as funções
-  public async update(id: number, contactData: UpdateContactDto, contactProfileImage: Express.Multer.File): Promise<Contact | string | any> {
+  public async update(id: number, contactData: UpdateContactDto, contactProfileImage: Express.Multer.File): Promise<Contact | string> {
     // Verifica se o contato existe antes de prosseguir
     const existingContact = await this.findById(id);
 
@@ -73,7 +72,7 @@ export class ContactService {
     }
 
     if (contactProfileImage) {
-      contactData.contactImage = await this.imageUpload.contactImage(contactProfileImage);
+      contactData.contactImage = await this.imageUpload.uploadImage(contactProfileImage, "contact");
     }
 
     // Atualiza os campos no objeto existente
@@ -83,7 +82,9 @@ export class ContactService {
     };
 
     try {
-      return await this.contactRepository.save(updatedContact);
+      const saveContact = await this.contactRepository.save(updatedContact);
+
+      return saveContact;
     } catch (error) {
       console.log(error);
       throw new BadRequestException("Failed to updated a contact!");

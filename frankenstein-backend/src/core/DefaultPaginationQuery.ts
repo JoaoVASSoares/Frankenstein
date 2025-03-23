@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from "class-validator";
+import { IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class DefaultPaginationQueryDto {
@@ -23,11 +23,11 @@ export class DefaultPaginationQueryDto {
   @IsString()
   search?: string;
 
-  // @ApiPropertyOptional({
-  //   description: "Sorting direction ('ASC' or 'DESC')",
-  //   enum: ["ASC", "DESC"],
-  //   required: false,
-  // })
-  // @IsIn(["ASC", "DESC"])
-  // order: "ASC" | "DESC";
+  @ApiPropertyOptional({
+    description: "Sorting direction ('ASC' or 'DESC')",
+    enum: ["ASC", "DESC"],
+    required: false,
+  })
+  @IsIn(["ASC", "DESC"])
+  order: "ASC" | "DESC";
 }

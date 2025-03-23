@@ -4,6 +4,8 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { ContactModule } from "./routes/contact/contact.module";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { join } from "path";
+import { UserModule } from "./routes/users/user.module";
+import { AuthenticationModule } from "./routes/authentication/authentication.module";
 
 @Module({
   imports: [
@@ -18,7 +20,7 @@ import { join } from "path";
       password: process.env.DEVELOPMENT_DB_PASSWORD,
       database: process.env.DEVELOPMENT_DB_DATABASE,
       entities: [`${__dirname}/**/*.entity{.js,.ts}`], // Declaração das entidades
-      migrations: [`${__dirname}/routes/**/migrations/*{.ts,.js}`],
+      migrations: [`${__dirname}/database/migrations/**/*{.ts,.js}`],
       migrationsRun: true,
       // autoLoadEntities: true,
       // synchronize: true,
@@ -27,6 +29,8 @@ import { join } from "path";
       rootPath: join(__dirname, "..", "uploads"), // Diretório base para arquivos estáticos
       serveRoot: "/uploads", // Caminho público para acessar os arquivos
     }),
+    AuthenticationModule,
+    UserModule,
     ContactModule,
   ],
   controllers: [],
