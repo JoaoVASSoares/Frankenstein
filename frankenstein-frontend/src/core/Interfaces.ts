@@ -1,3 +1,5 @@
+import { User } from "./types";
+
 export interface IContact {
   id: number;
   birthday: string;
@@ -28,3 +30,15 @@ export interface IContactPagination {
   items: IContact[];
   meta: IMetaPagination;
 }
+
+export interface IAuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  rememberMe: boolean;
+  setUser: (user: User) => void;
+  setRememberMe: (remember: boolean) => void;
+  logout: () => void;
+  fetchUser: () => Promise<void>;
+}
+

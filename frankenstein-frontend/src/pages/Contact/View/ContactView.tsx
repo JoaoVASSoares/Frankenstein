@@ -18,7 +18,9 @@ const ContactView = () => {
   const fetchContact = async (id: string | undefined) => {
     if (!id) return;
     try {
-      let response = await fetch(`http://localhost:3000/api/v1/contact/${id}`);
+      let response = await fetch(`http://localhost:3000/api/v1/contact/${id}`, {
+        credentials: "include",
+      });
 
       if (!response.ok) {
         throw new Error(`Erro na requisição: ${response.statusText}`);

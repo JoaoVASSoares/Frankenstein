@@ -1,21 +1,23 @@
-import "./createContact.css";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button, CardBody, CardHeader, Input, Popover, PopoverContent, PopoverHandler, Typography } from "@material-tailwind/react";
 import ImageCropper from "../../../components/ImageCropper/ImageCropper";
 import { DayPicker } from "react-day-picker";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "react-day-picker/locale";
 import { ptBR as brazilian } from "date-fns/locale";
 import { AtSymbolIcon, CalendarIcon, MapPinIcon, UserIcon } from "@heroicons/react/24/solid";
 import { PhoneIcon } from "@heroicons/react/24/solid";
 import InputMask from "react-input-mask";
-import { useEffect, useState } from "react";
 import FLoadingSpinnerInput from "../../../layout/FLoadingSpinnerInput";
 import { toast, Zoom } from "react-toastify";
 import Swal from "sweetalert2";
-import { useNavigate } from "react-router-dom";
+import { imageURL } from "../../../core/Constants";
 
-const CreateContact = () => {
-  // Definição dos states utilizados em minha aplicação
+const ContactEdit = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
     lastName: "",
@@ -34,14 +36,10 @@ const CreateContact = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
   const [loadingZipCode, setLoadingZipCode] = useState<boolean>(false);
+  const [loadingButton, setLoadingButton] = useState<boolean>(false);
   const [disabledInputs, setDisabledInputs] = useState<boolean>(true);
   const [readOnlyInputs, setReadOnlyInputs] = useState<boolean>(false);
-  const [loadingButton, setLoadingButton] = useState<boolean>(false);
 
-  // Use navigate para termos navegações
-  const navigate = useNavigate();
-
-  // Função para mudar os valores dos stados no objeto formData
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -65,47 +63,26 @@ const CreateContact = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      lastName: "",
-      birthday: undefined,
-      phone: "",
-      whatsapp: "",
-      zipCode: "",
-      publicPlace: "",
-      neighborhood: "",
-      city: "",
-      state: "",
-      number: "",
-      complement: "",
-      email: "",
-    });
-  };
-
-  const buildFormData = (data: { [key: string]: any }, imageFile?: File | null): FormData => {
-    const formData = new FormData();
-
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === "birthday" && value) {
-        // Formata a data antes de enviar
-        formData.append(key, format(value as Date, "yyyy-MM-dd"));
-      } else if (key === "zipCode" || key === "phone" || (key === "whatsapp" && value)) {
-        formData.append(key, value.replace(/\D/g, ""));
-      } else if (value !== undefined && value !== null) {
-        // Converte o valor para string (exceto arquivos)
-        formData.append(key, value.toString());
+  const fetchContactById = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/v1/contact/${id}`, {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Erro ao buscar contato.");
+      const data = await response.json();
+      setFormData({
+        ...data,
+        birthday: data.birthday ? parseISO(data.birthday) : undefined,
+      });
+      if (data.contactImage) {
+        setImageFile(data.contactImage);
       }
-    });
-
-    if (imageFile) {
-      formData.append("contactImage", imageFile);
+    } catch (error) {
+      Swal.fire({ icon: "error", title: "Erro", text: "Não foi possível carregar os dados." });
     }
-
-    return formData;
   };
 
-  const handleSubmitForm = async () => {
+  const handleUpdateContact = async () => {
     setLoadingButton(true);
 
     // Se houver erros, não envie o formulário
@@ -114,50 +91,46 @@ const CreateContact = () => {
       return;
     }
 
-    // Por ser ter imagem e o formato der "multipart/form-data" utilizando o form data para construir o body da request
-    const newContactFormData = buildFormData(formData, imageFile);
+    const formDataToSend = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key === "birthday" && value) {
+        formDataToSend.append(key, format(value as Date, "yyyy-MM-dd"));
+      } else if (value) {
+        formDataToSend.append(key, value.toString());
+      }
+    });
+
+    // Remove qualquer entrada anterior antes de adicionar a nova imagem
+    if (formDataToSend.has("contactImage")) {
+      formDataToSend.delete("contactImage");
+    }
+
+    if (imageFile) {
+      formDataToSend.append("contactImage", imageFile);
+    }
+
     try {
-      const response = await fetch("http://localhost:3000/api/v1/contact", {
-        method: "POST",
-        body: newContactFormData, // Corpo da requisição com FormData por causa da imagem.
+      console.log(formData);
+      const response = await fetch(`http://localhost:3000/api/v1/contact/${id}`, {
+        method: "PUT",
+        body: formDataToSend,
       });
-
       if (response.ok) {
-        resetForm();
-
-        // Notificação de sucesso
-        toast.success("Contato criado com sucesso!", {
+        toast.success("Contato atualizado com sucesso!", {
           position: "top-right",
           autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: false,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
           theme: "colored",
           transition: Zoom,
         });
-
         navigate("/contact");
       } else {
         const errorData = await response.json();
-
-        Swal.fire({
-          icon: "error",
-          title: "Erro ao criar contato",
-          text: errorData.error.message || "Ocorreu um erro inesperado.",
-        });
-
-        setLoadingButton(false);
+        Swal.fire({ icon: "error", title: "Erro", text: errorData.error.message || "Ocorreu um erro." });
       }
     } catch (error) {
+      Swal.fire({ icon: "error", title: "Erro", text: "Não foi possível atualizar os dados." });
+    } finally {
       setLoadingButton(false);
-
-      Swal.fire({
-        icon: "error",
-        title: "Erro na requisição",
-        text: "Não foi possível enviar os dados. Verifique sua conexão e tente novamente. " + error,
-      });
     }
   };
 
@@ -218,19 +191,23 @@ const CreateContact = () => {
     getFullAdress(formData.zipCode);
   }, [formData.zipCode]);
 
+  useEffect(() => {
+    fetchContactById();
+  }, [id]);
+
   return (
     <>
       <CardHeader className="bg-gray-900 p-5" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-        <span className="text-white uppercase font-bold">Adicionar novo contato</span>
+        <span className="text-white uppercase font-bold">Editar Contato</span>
       </CardHeader>
       <CardBody placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-        <Typography color="gray" className="mt-1 font-normal" placeholder="" onPointerEnterCapture="" onPointerLeaveCapture="">
-          Adicione um novo contato em sua agenda.
+        <Typography color="gray" className="mt-1 font-normal" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+          Edite os dados do contato.
         </Typography>
         <form id="contactForm">
           <div className="grid grid-cols-5 gap-4 mt-5">
             <div id="userIcon" className="col-span-1">
-              <ImageCropper onImageCropped={file => setImageFile(file)} />
+              <ImageCropper onImageCropped={file => setImageFile(file)} imageUrl={imageFile ? `${imageURL}${imageFile}` : null} />
             </div>
             <div className="col-span-4">
               <div className="mt-10">
@@ -497,7 +474,7 @@ const CreateContact = () => {
               <Button
                 type="button"
                 style={{ width: "100%" }}
-                onClick={handleSubmitForm}
+                onClick={handleUpdateContact}
                 placeholder={undefined}
                 onPointerEnterCapture={undefined}
                 onPointerLeaveCapture={undefined}
@@ -513,4 +490,4 @@ const CreateContact = () => {
   );
 };
 
-export default CreateContact;
+export default ContactEdit;

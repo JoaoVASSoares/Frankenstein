@@ -7,6 +7,8 @@ const FPageTitleUpdater = () => {
   useEffect(() => {
     // Define os títulos baseados nas rotas
     const titles: { [key: string]: string } = {
+      "/login": "Login - Frankenstain",
+      "/register": "Registro - Frankenstain",
       "/": "Home - Frankenstain",
       "/contact": "Contatos - Frankenstain",
       "/contact/create": "Criar Contato - Frankenstain",

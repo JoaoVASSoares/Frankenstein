@@ -15,6 +15,7 @@
 .active {
   border-radius: 16px;
   background-color: #ddd;
+  padding: 2px;
 }
 
 .Toastify__toast--success {
@@ -27,4 +28,8 @@
 
 .swal2-confirm {
   background-color: black;
+}
+
+.MuiFormHelperText-root {
+  color: red !important;
 }
